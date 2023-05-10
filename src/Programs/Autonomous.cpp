@@ -165,7 +165,7 @@ void twoTileSkills(Robot& robot) {// GENERATED C++ CODE FROM PathGen 3.4.3
 void testAuton(Robot& robot) {
     
     
-
+    goToPoint(getRobot15,  )
     
     
 }
