@@ -15,9 +15,10 @@ Robot getRobot15(bool isSkills) {
     // left -13, -14, 15, 17
     // right -9, 18, -20, 21
 
-    robot.drive.reset(new Drive(
-        {-13, -14, 15, 17}, // left motor ports
-        {-9, 18, -20, 21}, // right motor ports
+    robot.drive.reset(new Drive( // left motor ports
+    {14,-18},
+        {1,13}, // right motor ports
+        
         pros::E_MOTOR_GEAR_600, // internal gear ratio
         3.0/5.0, // external gear ratio
         3.25, // wheel diameter in inches
@@ -26,15 +27,15 @@ Robot getRobot15(bool isSkills) {
 
     robot.localizer.reset(new IMULocalizer(
         *robot.drive, // reference to drive object
-        1,// relabled to 1, 2, // imu port A
-        3 // imu port B
+        10,// relabled to 1, 2, // imu port A
+        12 // imu port B
     ));
 
-
+    robot.vis.reset(new pros::Vision(20));
     
 
     robot.flywheel.reset(new TBHFlywheel(
-        {-4, 8}, // ports
+        {1, 2}, // ports
         { // volt to rpm data
             {1615, 5},
             {1966, 6},
@@ -91,9 +92,9 @@ Robot getRobot15(bool isSkills) {
     robot.roller.reset(new pros::Motor(10, pros::E_MOTOR_GEAR_100));
     robot.roller->set_encoder_units(pros::E_MOTOR_ENCODER_DEGREES);
 
-    robot.shooterFlap.reset(new pros::ADIDigitalOut('H'));
+    robot.shooterFlap.reset(new pros::ADIDigitalOut('B'));
 
-    robot.endgame.reset(new pros::ADIDigitalOut('B'));
+    robot.endgame.reset(new pros::ADIDigitalOut('A'));
 
     return robot;
 

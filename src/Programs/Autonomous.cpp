@@ -1,3 +1,4 @@
+#include "PathFollowing/PathFollower.h"
 #include "Subsystems/RobotBuilder.h"
 #include "Programs/Driver.h"
 #include "AutonomousFunctions/DriveFunctions.h"
@@ -17,13 +18,13 @@
 #define GFU_DIST_FAST(maxSpeed) DoubleBoundedPID({0.17, 0, 0.017, 0.12, maxSpeed}, 0.075, 3, false)
 
 // for normal forwards
-#define GFU_DIST_PRECISE(maxSpeed) DoubleBoundedPID({0.123, 0, 0.027, 0.12, clamp(maxSpeed,-0.8,0.8), 0.03}, 0.075, 3)
+#define GFU_DIST_PRECISE(maxSpeed) DoubleBoundedPID({0.5, 0, 0.027, 0.12, clamp(maxSpeed,-0.8,0.8), 0.03}, 0.075, 3)
 
 
 #define GFU_TURN SimplePID({1, 1.5, 0, 0.0, 1})
 #define GTU_TURN DoubleBoundedPID({1.25, 0.00, 0.095, 0.15, 1}, getRadians(1.5), 1)
 
-#define GTU_TURN_PRECISE DoubleBoundedPID({1.25, 0.005, 0.13, 0.17, 1}, getRadians(0.5), 3)
+#define GTU_TURN_PRECISE DoubleBoundedPID({1.1, 0.005, 0.13, 0.17, 1}, getRadians(0.5), 3)
 
 #define GCU_CURVE SimplePID({2.5/*2.25*//*1.7*/, 0, 0})
 
@@ -165,7 +166,17 @@ void twoTileSkills(Robot& robot) {// GENERATED C++ CODE FROM PathGen 3.4.3
 void testAuton(Robot& robot) {
     
     
-    goToPoint(getRobot15,  )
+    //goForwardU(robot, GFU_DIST_PRECISE(1), GFU_TURN, 24, getRadians(359.98));
+    //goForwardU(robot, GFU_DIST_PRECISE(0.9), GFU_TURN, 24, getRadians(90));
+    goTurnU(robot, GTU_TURN_PRECISE, getRadians(180));
+    goForwardU(robot, GFU_DIST_PRECISE(0.9), GFU_TURN, -24, getRadians(270));
+    //goForwardU(robot, GFU_DIST_PRECISE(0.9), GFU_TURN, -24, getRadians(270));
+
+   // goForwardU(robot, GFU_DIST_PRECISE(1), GFU_TURN, 48, getRadians(180));
+    
+
     
     
+
+
 }

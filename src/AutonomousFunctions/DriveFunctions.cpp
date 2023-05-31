@@ -1,9 +1,27 @@
 
 
 #include "AutonomousFunctions/DriveFunctions.h"
+#include "Algorithms/EndablePID.h"
 #include "misc/MathUtility.h"
 #include "pros/rtos.hpp"
+#include "PathFollowing/PathFollower.h"
+#include "Subsystems/RobotBuilder.h"
+#include "Programs/Driver.h"
+#include "AutonomousFunctions/DriveFunctions.h"
+#include "Algorithms/SingleBoundedPID.h"
+#include "Algorithms/SimplePID.h"
+#include "Algorithms/DoubleBoundedPID.h"
+#include "Algorithms/NoPID.h"
+#include "Algorithms/Alternator.h"
+#include "Algorithms/Shooter.h"
+#include "Algorithms/ConversionData.h"
+#include "misc/MathUtility.h"
+#include "misc/ProsUtility.h"
+#include "pros/llemu.hpp"
+#include "pros/rtos.hpp"
 
+#define GFU_TURN SimplePID({1, 1.5, 0, 0.0, 1})
+#define GTU_TURN DoubleBoundedPID({1.25, 0.00, 0.095, 0.15, 1}, getRadians(1.5), 1)
 // Check if targetHeading was set to default, in which case maintain the current heading and update targetHeading value
 inline void setHeading(Robot& robot, double& targetHeading) {
     if (targetHeading == MAINTAIN_CURRENT_HEADING) targetHeading = robot.localizer->getHeading();
@@ -171,11 +189,7 @@ void goToPoint(Robot& robot, EndablePID&& pidDistance, SimplePID&& pidHeading, d
         if (currentDistance < 12) recalculateHeading = false;
         if (recalculateHeading) targetHeading = headingToPoint(x, y, goalX, goalY);
 
-        // pros::lcd::clear();
-        // pros::lcd::print(0, "%.2f", currentDistance);      
-        // pros::lcd::print(1, "goal %.2f %.2f", goalX, goalY);
-        // pros::lcd::print(2, "current %.2f %.2f", x, y);`
-        // pros::lcd::print(3, "other %.2f %.2f", otherX, otherY);
+        
         double baseVelocity = pidDistance.tick(currentDistance);
 
         double headingError = deltaInHeading(targetHeading, robot.localizer->getHeading());
@@ -185,10 +199,14 @@ void goToPoint(Robot& robot, EndablePID&& pidDistance, SimplePID&& pidHeading, d
         double right = baseVelocity + deltaVelocity;
         robot.drive->setEffort(left, right);
 
+        if(robot.localizer->getX() == goalX && robot.localizer->getY() == goalY){
+            robot.drive->stop();
+            pros::lcd::print(3, "target reachedf");
+        }
         pros::delay(10);
     }
     
-    robot.drive->stop();
+    
 }
 
 void turnToPoint(Robot& robot, EndablePID&& pidHeading, double goalX, double goalY) {
@@ -201,3 +219,48 @@ void turnToPoint(Robot& robot, EndablePID&& pidHeading, double goalX, double goa
     goTurnU(robot, std::move(pidHeading), targetHeading);
 
 }
+
+void visAim(Robot& robot){
+    robot.vis->set_zero_point(pros::E_VISION_ZERO_CENTER);
+
+  // Gets largest object, filters if it is the right sig
+  auto object = robot.vis->get_by_size(0);
+  while(true){
+  if (object.signature == 2) {
+
+    // Find angle of goal compared to robot
+    int center_x = object.left_coord + (object.width / 2) - (VISION_FOV_WIDTH / 2);
+    float center_x_percentage = center_x / (VISION_FOV_WIDTH / 2.0f);
+    float direction_radian = std::atan(center_x_percentage / std::tan(61 / 2.0f / 360 * (23.14)));
+    float offdegrees = direction_radian/(23.14)/ 360;
+
+    // Reset chassis to zero to do a relative turn
+    robot.localizer->setHeading(0);
+
+
+    // Set LED to look cool
+    robot.vis->set_led(COLOR_WHITE);
+
+    // Set braking mode
+    robot.drive->setBrakeMode(pros::E_MOTOR_BRAKE_HOLD);
+
+    // Turning to correct postion
+    goTurnU(robot, GTU_TURN, getRadians(offdegrees));
+    // Update object postion after aimed
+    center_x = object.left_coord + (object.width / 2) - (VISION_FOV_WIDTH / 2);
+    center_x_percentage = center_x / (VISION_FOV_WIDTH / 2.0f);
+    direction_radian = std::atan(center_x_percentage/std::tan(61 / 2.0f / 360 * (23.14)));
+    offdegrees = direction_radian/(23.14) *360;
+    int absdeg = (fabs(offdegrees));
+    double error = 3;
+
+    //If goal is in center, give driver some input
+    if (absdeg < error) {
+    robot.vis->set_led(COLOR_PURPLE);
+    pros::delay(200);
+    }
+  }
+
+  pros::delay(20);
+  robot.vis->set_led(COLOR_RED);
+}}

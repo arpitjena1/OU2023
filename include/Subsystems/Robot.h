@@ -24,5 +24,6 @@ public:
     std::unique_ptr<pros::ADIDigitalOut> shooterFlap;
 
     std::unique_ptr<pros::ADIDigitalOut> endgame;
+    std::unique_ptr<pros::Vision> vis;
 
 };
